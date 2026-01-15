@@ -109,21 +109,7 @@ Responsibilities handled inside `app.py`:
 
 This design reflects a **self‑contained RAG application**, suitable for demos and portfolio projects.
 
----
 
-## Environment Variables
-
-This project uses a Hugging Face hosted LLM.
-
-You must set your token as an environment variable:
-
-```bash
-export HF_TOKEN=your_huggingface_token
-````
-
-The token is **never hard‑coded** for security reasons.
-
----
 
 ## Example Use Cases
 

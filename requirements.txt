@@ -1,0 +1,18 @@
+# Web UI
+gradio==6.3.0
+
+# RAG pipeline
+langchain-core==1.7.3
+langchain-community==0.4.1
+langchain-text-splitters==1.1.0
+langchain-openai==1.7.3
+
+# Embeddings + vector store
+sentence-transformers==5.2.0
+faiss-cpu==1.13.2
+
+# PDF parsing
+PyMuPDF==1.26.7
+
+# Loads OPENROUTER_API_KEY from .env
+python-dotenv==1.2.1

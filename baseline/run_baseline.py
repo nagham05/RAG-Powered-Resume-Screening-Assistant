@@ -1,3 +1,4 @@
+import re
 import sys
 import time
 from pathlib import Path
@@ -16,10 +17,21 @@ QUERIES = [
     "Find candidates with Sensor Integration, System Architecture, CAD Design, MATLAB, Data Analysis, Mechanical Engineering experience",
 ]
 
-with open(Path(__file__).parent / "before.md", "w") as f:
+# Each run gets its own file: python baseline/run_baseline.py after_split
+run_name = sys.argv[1] if len(sys.argv) > 1 else "run"
+out_path = Path(__file__).parent / f"{run_name}.md"
+if out_path.exists():
+    sys.exit(f"{out_path.name} already exists, pick another run name")
+
+with open(out_path, "w") as f:
     for q in QUERIES:
         start = time.time()
         final = ""
         for final in screen_resumes_stream(q):   # it streams, so keep the last full text
             pass
-        f.write(f"## {q}\n\nTime: {time.time() - start:.1f}s\n\n{final}\n\n")
+        # Candidate headers look like "**Name**\n-----------------"
+        candidates = re.findall(r"\*\*(.+?)\*\*\n-{5,}", final)
+        f.write(f"## {q}\n\nTime: {time.time() - start:.1f}s\n\n")
+        f.write(f"Candidates: {', '.join(candidates)}\n\n{final}\n\n")
+
+print(f"Saved {out_path}")

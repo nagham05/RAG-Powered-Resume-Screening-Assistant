@@ -1,8 +1,11 @@
-
+from dotenv import load_dotenv
+load_dotenv()
 
 import gradio as gr
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from collections import defaultdict
 from langchain_core.globals import set_llm_cache
@@ -29,14 +32,14 @@ huggingface_embeddings = HuggingFaceBgeEmbeddings(
 # Ensure this folder exists from your notebook save
 vectorstore = FAISS.load_local("faiss_resume_index", huggingface_embeddings, allow_dangerous_deserialization=True)
 
-# 3. Setup LLM
-access_token = "****" 
-llm_engine = HuggingFaceEndpoint(
-    repo_id="mistralai/Mistral-7B-Instruct-v0.2",
-    huggingfacehub_api_token=access_token,
+# 3. Setup LLM (OpenRouter, key loaded from .env)
+load_dotenv()
+llm = ChatOpenAI(
+    model="mistralai/ministral-8b-2512",
+    api_key=os.environ["OPENROUTER_API_KEY"],
+    base_url="https://openrouter.ai/api/v1",
     temperature=0.1,
 )
-llm = ChatHuggingFace(llm=llm_engine)
 
 # 4. Logic with the exact structure you requested
 def screen_resumes_stream(query):

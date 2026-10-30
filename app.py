@@ -2,17 +2,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import gradio as gr
-from langchain_community.vectorstores import FAISS
-import os
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
-from collections import defaultdict
-from langchain_core.globals import set_llm_cache
-from langchain_community.cache import InMemoryCache
+from screen import screen_resumes_stream
 
-# 1. Setup Caching for Speed
-set_llm_cache(InMemoryCache())
 # 1. Custom CSS to add space between columns
 custom_css = """
 #left-column {
@@ -22,53 +14,6 @@ custom_css = """
     padding-left: 20px;
 }
 """
-# 2. Load Embeddings and Vector Store
-huggingface_embeddings = HuggingFaceBgeEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2",
-    model_kwargs={"device": "cpu"},
-    encode_kwargs={"normalize_embeddings": True}
-)
-
-# Ensure this folder exists from your notebook save
-vectorstore = FAISS.load_local("faiss_resume_index", huggingface_embeddings, allow_dangerous_deserialization=True)
-
-# 3. Setup LLM (OpenRouter, key loaded from .env)
-load_dotenv()
-llm = ChatOpenAI(
-    model="mistralai/ministral-8b-2512",
-    api_key=os.environ["OPENROUTER_API_KEY"],
-    base_url="https://openrouter.ai/api/v1",
-    temperature=0.1,
-)
-
-# 4. Logic with the exact structure you requested
-def screen_resumes_stream(query):
-    # Retrieve docs
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
-    docs = retriever.invoke(query)
-    
-    candidate_chunks = defaultdict(list)
-    for doc in docs:
-        name = doc.metadata.get("candidate", "Unknown")
-        candidate_chunks[name].append(doc.page_content)
-    
-    accumulated_text = ""
-    for candidate, chunks in candidate_chunks.items():
-        context = "\n\n".join(chunks[:2])
-        prompt = f"AI HR Assistant: Evaluate {candidate} for: {query}\n\nExcerpts:\n{context}\n\nAnswer YES/NO and justify."
-        
-        # Exact structure from your request
-        accumulated_text += f"**{candidate}**\n-----------------\n**Decision:** "
-        yield accumulated_text
-        
-        # Streaming the LLM response
-        for chunk in llm.stream(prompt):
-            content = chunk.content if hasattr(chunk, 'content') else str(chunk)
-            accumulated_text += content
-            yield accumulated_text
-        
-        accumulated_text += "\n\n---\n\n"
-        yield accumulated_text
 
 # 5. Modern Dashboard Design using Blocks
 with gr.Blocks(theme=gr.themes.Soft(),css=custom_css) as demo:
